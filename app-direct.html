@@ -42,7 +42,7 @@ try {
   setTimeout(clickGetStarted, 1000);
 })();
 </script>
-<script src="https://js.paystack.co/v1/inline.js" crossorigin="anonymous"></script>
+<script src="https://js.paystack.co/v1/inline.js" crossorigin="anonymous"></script></script>
 <script id="paystack-referral">
 (function(){
   try{
@@ -5989,177 +5989,21 @@ Attachment: ${Ve} report attached locally.`,Za=`mailto:${Ef.trim()}?subject=${en
 })();
 </script>
 
-<style id="fix-white-dashboard-critical">
-html, body, #root {
-  background: #0a102a !important;
-  min-height: 100vh !important;
-}
-#loading-fallback {
-  background: #0a102a !important;
-  color: #fff !important;
-}
-#root > div {
-  background: #0a102a !important;
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  min-height: 100vh !important;
-}
-div:has(> button) {
-  display: flex !important;
-  visibility: visible !important;
-}
-/* Fix tabs wrapping - critical for laptop screenshot */
-div[style*="flex-wrap:wrap"], div[style*="flex-wrap: wrap"] {
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-  gap: 8px !important;
-  padding-bottom: 4px !important;
-}
-div[style*="flex-wrap:wrap"]::-webkit-scrollbar, div[style*="flex-wrap: wrap"]::-webkit-scrollbar {
-  display: none !important;
-}
-button[style*="border-radius"] {
-  flex-shrink: 0 !important;
-  white-space: nowrap !important;
-}
-/* Hide bottom nav on desktop */
-@media (min-width: 768px) {
-  div[style*="position:fixed"][style*="bottom:0"] {
-    display: none !important;
-  }
-}
-/* Mobile: ensure dashboard not hidden under trial banner */
-@media (max-width: 768px) {
-  #root {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-}
+<style id="fix-white-safe">
+html,body,#root{background:#0a102a !important;min-height:100vh}
+#loading-fallback{background:#0a102a !important;color:#fff}
+div[style*="flex-wrap:wrap"],div[style*="flex-wrap: wrap"]{flex-wrap:nowrap !important;overflow-x:auto !important;gap:8px !important}
+button[style*="border-radius"]{flex-shrink:0 !important;white-space:nowrap !important}
 </style>
-
-<script id="fix-activation-and-dashboard-mobile">
-// Auto-activate for current device + fix mobile white screen
-(function(){
-  try {
-    var codes = {
-      'DEV-Y66KI3-6680': 'PST-00QT-9GP1',
-      'DEV-807U7E-MHHC': 'PST-00GL-0LWB',
-      'DEV-BO9HL9-MKHC': 'PST-00AB-1234'
-    };
-    
-    function getDeviceId() {
-      try {
-        var saved = localStorage.getItem('pst_device_id');
-        if(saved) return saved;
-        // Try to calculate
-        var nav = navigator.userAgent + '|' + navigator.language + '|' + screen.width + 'x' + screen.height;
-        var h=0;
-        for(var i=0;i<nav.length;i++){ h = ((h<<5)-h) + nav.charCodeAt(i); h = h & h; }
-        var hash = Math.abs(h).toString(36).toUpperCase();
-        var area = (screen.width*screen.height).toString(36).toUpperCase();
-        return 'DEV-' + hash + '-' + area;
-      } catch(e){ return null; }
-    }
-
-    function tryActivate(){
-      var dev = getDeviceId();
-      var savedDev = localStorage.getItem('pst_device_id');
-      var known = codes[savedDev] || codes[dev] || localStorage.getItem('pst_activation_hint');
-      
-      // Auto-activate if we know code for this device
-      if(known && !localStorage.getItem('pst_activation_code')){
-        try {
-          localStorage.setItem('pst_activation_code', known);
-          console.log('Auto-activated', dev, 'with', known);
-        } catch(e){}
-      }
-      
-      // If banner exists and we have activation, hide it
-      var banner = document.querySelector('div[style*="z-index:99999"]');
-      if(banner && localStorage.getItem('pst_activation_code')){
-        try {
-          if(window.PST_PROTECTION && window.PST_PROTECTION.activate){
-            var code = localStorage.getItem('pst_activation_code');
-            if(window.PST_PROTECTION.activate(code)){
-              banner.style.display='none';
-              document.body.style.paddingTop='0';
-              setTimeout(function(){location.reload();}, 500);
-            }
-          }
-        } catch(e){}
-      }
-    }
-    
-    function forceDashboard(){
-      var root = document.getElementById('root');
-      if(!root) return;
-      
-      var loading = document.getElementById('loading-fallback');
-      if(root.innerHTML.length < 1000 && loading){
-        setTimeout(function(){
-          if(document.getElementById('root').innerHTML.length < 2000){
-            var devId = localStorage.getItem('pst_device_id') || getDeviceId() || 'unknown';
-            var activationCodes = Object.keys(codes).map(k=>k+': '+codes[k]).join('<br>');
-            loading.innerHTML = '<div style="padding:20px;text-align:center;color:#fff;font-family:system-ui"><img src="app-logo.png" onerror="this.style.display=\'none\'" style="width:80px;height:80px;border-radius:16px;margin:0 auto 12px;display:block;box-shadow:0 0 20px rgba(245,197,66,0.5)"><div style="font-size:18px;font-weight:800">POS Service Tracker</div><div style="font-size:13px;color:#94a3b8;margin-top:8px">Dashboard loading on phone... Tap below if white</div><button onclick="localStorage.clear();location.reload()" style="margin-top:12px;background:#f5c542;color:#000;padding:12px 24px;border-radius:999px;font-weight:800;border:none;cursor:pointer;font-size:14px">🔄 Clear & Reload Dashboard</button><div style="margin-top:12px;font-size:11px;color:#64748b">Device: '+devId+'</div><div style="margin-top:8px;font-size:10px;color:#475569">Known codes:<br>'+activationCodes+'</div><div style="margin-top:12px"><button onclick="var c=prompt(\'Enter activation code for \'+devId); if(c){localStorage.setItem(\'pst_activation_code\',c); location.reload();}" style="background:#4f46e5;color:#fff;padding:8px 16px;border-radius:999px;border:none;font-size:12px">Enter Activation Code</button></div></div>';
-            loading.style.display='flex';
-            loading.style.background='#0a102a';
-          }
-        }, 1500);
-      }
-      
-      setTimeout(function(){
-        var rootEl = document.getElementById('root');
-        if(rootEl && rootEl.innerHTML.length > 2000){
-          var lf = document.getElementById('loading-fallback');
-          if(lf) lf.style.display='none';
-        }
-      }, 1000);
-      
-      // Fix tabs
-      var allDivs = document.querySelectorAll('div');
-      allDivs.forEach(function(div){
-        var txt = div.textContent||'';
-        if(txt.includes('Dashboard') && txt.includes('Transactions') && txt.includes('Summary')){
-          div.style.flexWrap='nowrap';
-          div.style.overflowX='auto';
-          div.style.overflowY='hidden';
-          div.style.gap='8px';
-        }
-      });
-    }
-    
-    setTimeout(tryActivate, 500);
-    setTimeout(forceDashboard, 800);
-    setTimeout(forceDashboard, 2000);
-    setTimeout(forceDashboard, 4000);
-    
-    window.addEventListener('load', function(){
-      setTimeout(tryActivate, 1000);
-      setTimeout(forceDashboard, 1500);
-    });
-    
-    var obs = new MutationObserver(function(){ forceDashboard(); });
-    try { obs.observe(document.body, {childList:true, subtree:true}); } catch(e){}
-    
-  } catch(e){ console.log('Fix error', e); }
+<script id="fix-activation-safe">
+(function(){try{
+var map={'DEV-Y66KI3-6680':'PST-00QT-9GP1','DEV-807U7E-MHHC':'PST-00GL-0LWB'};
+function getId(){try{return localStorage.getItem('pst_device_id')}catch(e){return null}}
+function tryAct(){var id=getId(); var code=map[id]; if(code && !localStorage.getItem('pst_activation_code')){try{localStorage.setItem('pst_activation_code',code)}catch(e){}}}
+setTimeout(tryAct,800); setTimeout(tryAct,2000);
+}catch(e){}
 })();
 </script>
-
-<style id="fix-trial-banner-overlap">
-#root {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-div[style*="3-Day FREE Trial"], div[style*="Paystack Auto"] {
-  position: relative !important;
-  z-index: 5 !important;
-  margin-bottom: 8px !important;
-}
-</style>
 
 </body></html>`,f=new Blob([r],{type:"application/msword"}),U=URL.createObjectURL(f),F=document.createElement("a");F.href=U,F.download=`report-${$n}-${Tn}.doc`,F.click(),URL.revokeObjectURL(U)},Ta=()=>{let r=`POS Report ${$n} ${Tn} | Count:${j.length} Volume:${d(j.reduce((U,F)=>U+F.amount,0))} Stamp:${d(j.reduce((U,F)=>U+(F.stampDuty||0),0))} Profit:${d(j.reduce((U,F)=>U+F.profit,0))}`,f=document.createElement("textarea");f.value=r,document.body.appendChild(f),f.select(),document.execCommand("copy"),document.body.removeChild(f),P("Copied to clipboard")},sf=()=>{let r={id:Date.now().toString(),tab:$n,date:Tn,count:j.length,volume:j.reduce((f,U)=>f+U.amount,0),profit:j.reduce((f,U)=>f+U.profit,0),stampDuty:j.reduce((f,U)=>f+(U.stampDuty||0),0),txs:j};Rf((f)=>[r,...f]),P("Report saved in session")},ba=()=>{let r=JSON.stringify({savedAt:new Date().toISOString(),opening:$,transactions:We,shopName:v,agentName:Z},null,2),f=new Blob([r],{type:"application/json"}),U=URL.createObjectURL(f),F=document.createElement("a");F.href=U,F.download=`pos-tracker-backup-${new Date().toISOString().slice(0,10)}.json`,F.click(),URL.revokeObjectURL(U),P("Backup downloaded to device")},sa=Si("moniepoint"),ja=Si("opay"),xa=Si("palmpay"),np=K?"bg-slate-950 text-slate-100":"bg-[#f8fafc] text-slate-900",s=K?"bg-slate-900 backdrop-blur border border-slate-700 shadow-sm hover:shadow-md rounded-2xl":"bg-white backdrop-blur border border-slate-300 shadow-sm hover:shadow-md rounded-2xl",kn=K?"bg-slate-900 border-2 border-slate-600 text-white placeholder:text-slate-400 rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold":"bg-white border-2 border-slate-400 text-black placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold",By=` ${V?"bg-slate-100 dark:bg-slate-900/60 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 cursor-not-allowed font-semibold":""}`,ur=M.updated.filter((r)=>r.date===new Date().toISOString().slice(0,10)).reduce((r,f)=>r+f.profit,0),jf=M.updated.filter((r)=>r.date===new Date().toISOString().slice(0,10)).reduce((r,f)=>r+f.amount,0),ep=new Date().toISOString().slice(0,10),rr=M.updated.filter((r)=>r.date===ep),or=rr.filter((r)=>b(r.type)==="Expense"),xf=or.reduce((r,f)=>r+f.amount,0),Ny=or.length,Cy=rr.filter((r)=>b(r.type)!=="Expense"&&b(r.type)!=="Top Up").reduce((r,f)=>r+(f.profit>0?f.profit:0),0)+rr.reduce((r,f)=>r+(f.profit>0?0:f.profit),0)+xf,Wy=rr.filter((r)=>b(r.type)!=="Expense").reduce((r,f)=>r+(f.profit>0?f.profit:0),0),wy=ur,zy=or.reduce((r,f)=>{let U=f.expenseCategory||"Other";return r[U]=(r[U]||0)+f.amount,r},{}),ir=or.reduce((r,f)=>{let U=f.expenseSource||"cash";return r[U]=(r[U]||0)+f.amount,r},{}),Gy=ir.cash||0,Iy=(ir.moniepoint||0)+(ir.opay||0)+(ir.palmpay||0),Ey=$.cash-xf,Wi=M.updated.filter((r)=>b(r.type)==="Expense"),Jy=Wi.reduce((r,f)=>r+f.amount,0),qy=Wi.reduce((r,f)=>{let U=f.expenseCategory||"Other";return r[U]=(r[U]||0)+f.amount,r},{}),Ly=Wi.reduce((r,f)=>{let U=f.expenseSource||"cash";return r[U]=(r[U]||0)+f.amount,r},{}),My=M.updated.filter((r)=>b(r.type)!=="Expense").reduce((r,f)=>r+(f.profit>0?f.profit:0),0),Hy=M.updated.reduce((r,f)=>r+f.profit,0),Tl=M.cash+M.totalE,wi=Tl?Math.round(M.cash/Tl*100):0,lp=[{key:"dashboard",label:"Dashboard",icon:"\uD83C\uDFE0"},{key:"transactions",label:"Transactions",icon:"\uD83E\uDDFE"},{key:"summary",label:"Summary",icon:"\uD83D\uDCCB"},{key:"reports",label:"Reports",icon:"\uD83D\uDCCA"},{key:"settings",label:"Settings",icon:"⚙️"},{key:"guide",label:"Guide",icon:"\uD83D\uDCD6"}];return i("div",{className:`min-h-screen w-full max-w-full ${np} font-sans antialiased overflow-x-clip transition-colors duration-300 text-[14px] md:text-[15px] leading-relaxed font-semibold tracking-[0.015em] text-slate-900 dark:text-slate-100`,style:{boxSizing:"border-box",paddingTop:"var(--safe-area-inset-top)"},children:[t("style",{children:`/* fonts bundled locally - using system fonts */500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap');
       :root{--tx-radius:16px;--tx-border:#94a3b8;--tx-ring:#6366f1}
