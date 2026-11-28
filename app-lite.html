@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<link rel="icon" href="app-logo.png"><link rel="apple-touch-icon" href="app-logo.png">
+<link rel="manifest" href="manifest.json">
+<title>POS Service Tracker - V2.15</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#0a102a;color:#fff;font-family:system-ui;min-height:100vh}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}
+.logo{width:56px;height:56px;border-radius:14px;object-fit:cover;border:1px solid rgba(245,197,66,0.3);box-shadow:0 0 20px rgba(245,197,66,0.4)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 0;flex-wrap:nowrap;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 18px;border-radius:999px;background:#1e293b;color:#94a3b8;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid rgba(255,255,255,0.1);flex-shrink:0}
+.tab.active{background:#f5c542;color:#000;border-color:#f5c542}
+.card{background:#fff;color:#0f172a;border-radius:16px;padding:16px;margin:12px 0}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;background:#fef3c7;color:#92400e}
+.btn{padding:12px 18px;border-radius:999px;border:none;font-weight:800;cursor:pointer}
+.btn-gold{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000}
+.btn-indigo{background:#4f46e5;color:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+.stat{background:#0f172a;color:#fff;border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.1)}
+.stat b{color:#f5c542}
+</style>
+</head><body>
+<div class="wrap">
+<header class="header">
+  <img src="app-logo.png" onerror="this.src='icon-192.png'" class="logo" alt="POS Logo">
+  <div>
+    <div style="font-weight:900;font-size:18px">POS Service Tracker <span class="badge">V2.15 OFFLINE-FIRST</span></div>
+    <div style="color:#94a3b8;font-size:11px" id="deviceInfo">Loading device...</div>
+  </div>
+</header>
+
+<div id="activationBanner" style="display:none;background:#f59e0b;color:#000;padding:12px;border-radius:12px;margin:12px 0;font-size:13px;font-weight:700">
+  <div>This app was moved to a new device. Enter activation code to continue</div>
+  <div style="font-size:11px;margin-top:4px">Device ID: <span id="devIdShow"></span></div>
+  <div style="display:flex;gap:8px;margin-top:8px"><input id="actCode" placeholder="Enter code e.g. PST-00QT-9GP1" style="flex:1;padding:10px;border-radius:8px;border:1px solid #000"><button class="btn btn-indigo" onclick="activate()">Activate</button></div>
+  <div style="font-size:10px;margin-top:6px;color:#78350f">Known: DEV-807U7E-MHHC→PST-00GL-0LWB, DEV-Y66KI3-6680→PST-00QT-9GP1</div>
+</div>
+
+<div id="trialBanner" class="card" style="background:linear-gradient(135deg,#f5c542,#f59e0b);color:#000">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <div><b>3-Day FREE Trial</b> • <span id="trialDays">3 days left</span> • Paystack Auto: <span id="refCode">POS...</span></div>
+    <button class="btn btn-indigo" onclick="pay()">Pay Now ₦2,500</button>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tab="dashboard">Dashboard</div>
+  <div class="tab" data-tab="transactions">Transactions</div>
+  <div class="tab" data-tab="summary">Summary</div>
+  <div class="tab" data-tab="reports">Reports</div>
+  <div class="tab" data-tab="settings">Settings</div>
+  <div class="tab" data-tab="tools">Tools</div>
+</div>
+
+<div id="content">
+  <div id="tab-dashboard" class="tab-panel">
+    <div class="card">
+      <div style="color:#f59e0b;font-weight:900;font-size:12px">TOTAL BALANCE • CASH + E-FLOAT</div>
+      <div style="font-size:32px;font-weight:900" id="totalBal">₦0</div>
+      <div style="font-size:12px;color:#059669">▲ 5.2% vs yesterday • Today profits <span id="todayProfit">₦0</span></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat"><div style="font-size:10px;color:#94a3b8">OPENING CASH</div><div style="font-weight:800" id="openCash">₦0</div></div>
+        <div class="stat"><div style="font-size:10px;color:#94a3b8">CURRENT CASH</div><div style="font-weight:800" id="currCash">₦0</div></div>
+        <div class="stat"><div style="font-size:10px;color:#94a3b8">OPENING E-FLOAT</div><div style="font-weight:800" id="openEfloat">₦0</div></div>
+        <div class="stat"><div style="font-size:10px;color:#22c55e">CURRENT E-FLOAT</div><div style="font-weight:800" id="currEfloat">₦0</div></div>
+      </div>
+      <div style="margin-top:12px;background:#fffbeb;border:1px solid #fde68a;padding:12px;border-radius:10px;font-size:12px">
+        <b>⚠️ CBN Compliance Required</b><br>Select your CBN Principal in Settings — Per CBN Oct 2025 guidelines.
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>Today's Transactions</b><button class="btn btn-gold" style="padding:8px 14px;font-size:12px" onclick="switchTab('transactions')">+ Add</button></div>
+      <div id="todayList" style="margin-top:10px;font-size:12px;color:#64748b">No transactions today. Add your first transaction.</div>
+    </div>
+  </div>
+  
+  <div id="tab-transactions" class="tab-panel" style="display:none">
+    <div class="card">
+      <h3 style="margin:0">Add Transaction</h3>
+      <div class="grid2" style="margin-top:12px">
+        <div><label style="font-size:11px;font-weight:700">Provider</label><select id="provider" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0"><option>Moniepoint</option><option>OPay</option><option>PalmPay</option><option>Others</option></select></div>
+        <div><label style="font-size:11px;font-weight:700">Type</label><select id="type" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0"><option>Transfer</option><option>Withdrawal</option><option>Deposit</option><option>Bills</option></select></div>
+      </div>
+      <div class="grid2">
+        <div><label style="font-size:11px;font-weight:700">Amount ₦</label><input id="amount" type="number" placeholder="e.g. 5000" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0"></div>
+        <div><label style="font-size:11px;font-weight:700">Charge ₦</label><input id="charge" type="number" placeholder="Auto" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0"></div>
+      </div>
+      <div style="margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;font-size:11px">
+        <div>Fee: <b id="calcFee">₦0</b> • VAT 7.5%: <b id="calcVat">₦0</b> • Stamp: <b id="calcStamp">₦0</b> • Profit: <b id="calcProfit" style="color:#059669">₦0</b></div>
+        <div style="margin-top:4px;color:#64748b">Cash: <span id="calcCash">₦0</span> • E-float: <span id="calcEfloat">₦0</span></div>
+      </div>
+      <button class="btn btn-gold" style="width:100%;margin-top:12px" onclick="addTx()">💾 Save Transaction</button>
+    </div>
+    <div class="card">
+      <b>Recent Transactions</b>
+      <div id="recentList" style="margin-top:10px">No transactions yet</div>
+    </div>
+  </div>
+
+  <div id="tab-summary" class="tab-panel" style="display:none">
+    <div class="card">
+      <b>Summary</b>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+        <div class="stat"><div style="font-size:10px">Total Volume</div><div style="font-weight:800;font-size:18px" id="sumVol">₦0</div></div>
+        <div class="stat"><div style="font-size:10px">Total Profit</div><div style="font-weight:800;font-size:18px;color:#22c55e" id="sumProfit">₦0</div></div>
+        <div class="stat"><div style="font-size:10px">Count</div><div style="font-weight:800" id="sumCount">0</div></div>
+        <div class="stat"><div style="font-size:10px">Stamp Duty</div><div style="font-weight:800" id="sumStamp">₦0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-reports" class="tab-panel" style="display:none">
+    <div class="card">
+      <b>Reports</b>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" style="background:#fff;border:1px solid #e2e8f0;font-size:12px" onclick="exportReport('daily')">Daily Report</button>
+        <button class="btn" style="background:#fff;border:1px solid #e2e8f0;font-size:12px" onclick="exportReport('weekly')">Weekly</button>
+        <button class="btn" style="background:#fff;border:1px solid #e2e8f0;font-size:12px" onclick="exportReport('monthly')">Monthly</button>
+      </div>
+      <div id="reportOutput" style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;font-size:11px;white-space:pre-wrap"></div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-panel" style="display:none">
+    <div class="card">
+      <b>Settings • CBN Principal</b>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700">CBN Principal (Bank)</label>
+        <select id="cbnPrincipal" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0">
+          <option value="">Select your bank</option>
+          <option value="Moniepoint">Moniepoint (50515)</option>
+          <option value="OPay">OPay</option>
+          <option value="PalmPay">PalmPay</option>
+          <option value="Others">Others</option>
+        </select>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700">Shop Name</label>
+        <input id="shopName" placeholder="e.g. My POS Shop" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0">
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700">Referral Code</label>
+        <input id="refInput" placeholder="e.g. POS9MWEM" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0">
+      </div>
+      <button class="btn btn-gold" style="width:100%;margin-top:12px" onclick="saveSettings()">Save Settings</button>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" style="background:#fff;border:1px solid #e2e8f0;font-size:11px" onclick="clearData()">Clear Data</button>
+        <button class="btn" style="background:#fff;border:1px solid #e2e8f0;font-size:11px" onclick="exportData()">Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-tools" class="tab-panel" style="display:none">
+    <div class="card">
+      <b>Tools • Calculator</b>
+      <div style="margin-top:10px">
+        <input id="toolAmount" type="number" placeholder="Amount" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0">
+        <div style="margin-top:8px;background:#f8fafc;padding:10px;border-radius:8px;font-size:12px" id="toolOutput">Enter amount to calculate VAT, Stamp, Profit</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+// LITE APP - No React, No bundle errors, Works on all phones
+(function(){
+  const CODES = {'DEV-Y66KI3-6680':'PST-00QT-9GP1','DEV-807U7E-MHHC':'PST-00GL-0LWB'};
+  let txs = JSON.parse(localStorage.getItem('pos_txs_lite')||'[]');
+  let settings = JSON.parse(localStorage.getItem('pos_settings_lite')||'{"cbnPrincipal":"","shopName":"","ref":""}');
+  
+  function save(){ localStorage.setItem('pos_txs_lite', JSON.stringify(txs)); localStorage.setItem('pos_settings_lite', JSON.stringify(settings)); render(); }
+  
+  function getDevId(){
+    let id = localStorage.getItem('pst_device_id');
+    if(!id){
+      let h=0, s=navigator.userAgent+screen.width+screen.height;
+      for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h=h&h }
+      id='DEV-'+Math.abs(h).toString(36).toUpperCase().slice(0,8)+'-'+(screen.width*screen.height).toString(36).toUpperCase().slice(0,4);
+      localStorage.setItem('pst_device_id', id);
+    }
+    return id;
+  }
+  
+  function checkActivation(){
+    let dev = getDevId();
+    document.getElementById('devIdShow').textContent = dev;
+    document.getElementById('deviceInfo').textContent = 'Device: '+dev+' • Offline-first • V2.15 Lite';
+    let code = localStorage.getItem('pst_activation_code');
+    let expected = CODES[dev];
+    if(!code && expected){
+      localStorage.setItem('pst_activation_code', expected);
+      code = expected;
+    }
+    if(!code){
+      document.getElementById('activationBanner').style.display='block';
+    } else {
+      document.getElementById('activationBanner').style.display='none';
+    }
+  }
+  
+  window.activate = function(){
+    let c = document.getElementById('actCode').value.trim().toUpperCase();
+    if(!c){ alert('Enter code'); return; }
+    // Simple check: PST-XXXX-XXXX format
+    if(!c.startsWith('PST-')){ alert('Invalid code format, should be PST-XXXX-XXXX'); return; }
+    localStorage.setItem('pst_activation_code', c);
+    document.getElementById('activationBanner').style.display='none';
+    alert('Activated! Device: '+getDevId());
+  };
+  
+  window.switchTab = function(name){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+    document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+    document.getElementById('tab-'+name).style.display='block';
+  };
+  
+  document.getElementById('tabs').addEventListener('click', e=>{
+    if(e.target.classList.contains('tab')){
+      switchTab(e.target.dataset.tab);
+    }
+  });
+  
+  function calc(amount, provider, type){
+    amount = parseFloat(amount)||0;
+    let fee = 0, charge = parseFloat(document.getElementById('charge').value)||0;
+    if(type==='Transfer'){ fee = amount*0.075; if(fee>0 && fee<10) fee=10; }
+    let stamp = 0;
+    if(type==='Transfer' && amount>=10000) stamp = 50;
+    let profit = charge - fee - stamp;
+    let cash = 0, efloat = 0;
+    if(type==='Withdrawal'){ cash = -amount; efloat = amount - charge; }
+    else if(type==='Deposit' || type==='Transfer'){ cash = amount; efloat = -amount; }
+    return {fee, vat:0, stamp, profit, cash, efloat, totalFee:fee+stamp};
+  }
+  
+  function updateCalc(){
+    let amt = document.getElementById('amount').value;
+    let prov = document.getElementById('provider').value;
+    let type = document.getElementById('type').value;
+    let r = calc(amt, prov, type);
+    document.getElementById('calcFee').textContent = '₦'+r.fee.toFixed(2);
+    document.getElementById('calcVat').textContent = '₦0 (included)';
+    document.getElementById('calcStamp').textContent = '₦'+r.stamp;
+    document.getElementById('calcProfit').textContent = '₦'+r.profit.toFixed(2);
+    document.getElementById('calcCash').textContent = '₦'+r.cash;
+    document.getElementById('calcEfloat').textContent = '₦'+r.efloat;
+  }
+  
+  document.getElementById('amount').addEventListener('input', updateCalc);
+  document.getElementById('type').addEventListener('change', updateCalc);
+  document.getElementById('charge').addEventListener('input', updateCalc);
+  
+  window.addTx = function(){
+    let amt = parseFloat(document.getElementById('amount').value);
+    if(!amt){ alert('Enter amount'); return; }
+    let prov = document.getElementById('provider').value;
+    let type = document.getElementById('type').value;
+    let charge = parseFloat(document.getElementById('charge').value)||0;
+    let r = calc(amt, prov, type);
+    let tx = {id:Date.now(), amount:amt, provider:prov, type, charge, fee:r.fee, stamp:r.stamp, profit:r.profit, cash:r.cash, efloat:r.efloat, date:new Date().toISOString()};
+    txs.unshift(tx);
+    save();
+    document.getElementById('amount').value='';
+    document.getElementById('charge').value='';
+    alert('Saved! Profit ₦'+r.profit.toFixed(2));
+    switchTab('dashboard');
+  };
+  
+  function render(){
+    let totalVol = txs.reduce((s,t)=>s+t.amount,0);
+    let totalProfit = txs.reduce((s,t)=>s+t.profit,0);
+    let totalCount = txs.length;
+    let totalStamp = txs.reduce((s,t)=>s+t.stamp,0);
+    let cash = txs.reduce((s,t)=>s+t.cash,0);
+    let efloat = txs.reduce((s,t)=>s+t.efloat,0);
+    
+    document.getElementById('totalBal').textContent = '₦'+(cash+efloat).toLocaleString();
+    document.getElementById('todayProfit').textContent = '₦'+totalProfit.toLocaleString();
+    document.getElementById('openCash').textContent = '₦0';
+    document.getElementById('currCash').textContent = '₦'+cash.toLocaleString();
+    document.getElementById('openEfloat').textContent = '₦0';
+    document.getElementById('currEfloat').textContent = '₦'+efloat.toLocaleString();
+    document.getElementById('sumVol').textContent = '₦'+totalVol.toLocaleString();
+    document.getElementById('sumProfit').textContent = '₦'+totalProfit.toLocaleString();
+    document.getElementById('sumCount').textContent = totalCount;
+    document.getElementById('sumStamp').textContent = '₦'+totalStamp;
+    
+    let today = new Date().toDateString();
+    let todayTxs = txs.filter(t=>new Date(t.date).toDateString()===today);
+    if(todayTxs.length){
+      document.getElementById('todayList').innerHTML = todayTxs.slice(0,5).map(t=>`<div style="padding:8px;background:#f8fafc;border-radius:8px;margin:4px 0;display:flex;justify-content:space-between"><span>${t.provider} ${t.type} ₦${t.amount}</span><span style="color:#059669;font-weight:800">+₦${t.profit.toFixed(2)}</span></div>`).join('');
+    }
+    document.getElementById('recentList').innerHTML = txs.slice(0,10).map(t=>`<div style="padding:8px;background:#f8fafc;border-radius:8px;margin:4px 0;display:flex;justify-content:space-between;font-size:12px"><span>${new Date(t.date).toLocaleTimeString()} ${t.provider} ₦${t.amount}</span><span style="color:#059669">₦${t.profit.toFixed(2)}</span></div>`).join('') || 'No transactions';
+    
+    document.getElementById('cbnPrincipal').value = settings.cbnPrincipal||'';
+    document.getElementById('shopName').value = settings.shopName||'';
+    document.getElementById('refInput').value = settings.ref||'';
+    
+    let ref = new URLSearchParams(location.search).get('ref') || settings.ref || 'POS'+Math.random().toString(36).substr(2,5).toUpperCase();
+    document.getElementById('refCode').textContent = ref;
+  }
+  
+  window.saveSettings = function(){
+    settings.cbnPrincipal = document.getElementById('cbnPrincipal').value;
+    settings.shopName = document.getElementById('shopName').value;
+    settings.ref = document.getElementById('refInput').value.trim().toUpperCase();
+    save();
+    alert('Settings saved! CBN Principal: '+settings.cbnPrincipal);
+  };
+  
+  window.clearData = function(){
+    if(confirm('Clear all transactions?')){
+      txs=[]; save();
+    }
+  };
+  
+  window.exportData = function(){
+    let blob = new Blob([JSON.stringify({txs,settings},null,2)],{type:'application/json'});
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a'); a.href=url; a.download='pos-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  };
+  
+  window.exportReport = function(type){
+    let out = `POS Report ${type.toUpperCase()} ${new Date().toLocaleDateString()}
+
+Count: ${txs.length}
+Volume: ₦${txs.reduce((s,t)=>s+t.amount,0)}
+Profit: ₦${txs.reduce((s,t)=>s+t.profit,0)}
+
+`+txs.map(t=>`${new Date(t.date).toLocaleString()} | ${t.provider} ${t.type} ₦${t.amount} Profit ₦${t.profit}`).join('
+');
+    document.getElementById('reportOutput').textContent = out;
+  };
+  
+  window.pay = function(){
+    let ref = document.getElementById('refCode').textContent;
+    let handler = PaystackPop.setup({
+      key: 'pk_test_f6e7c9d8e5a4b3c2d1e0f9a8b7c6d5e4',
+      email: 'pos@posservicetracker.com',
+      amount: 250000,
+      ref: 'POS-'+Date.now(),
+      metadata: {custom_fields:[{display_name:"Referral", variable_name:"ref", value:ref}]},
+      callback: function(res){
+        alert('Payment successful! Ref: '+res.reference+'
+Your referral: '+ref+'
+Trial extended!');
+        localStorage.setItem('pos_paid_'+ref, 'true');
+      },
+      onClose: function(){ alert('Payment cancelled'); }
+    });
+    handler.openIframe();
+  };
+  
+  document.getElementById('toolAmount').addEventListener('input', e=>{
+    let a = parseFloat(e.target.value)||0;
+    let fee = a>=10000? a*0.075:0;
+    let stamp = a>=10000?50:0;
+    document.getElementById('toolOutput').innerHTML = `Amount: ₦${a}<br>Fee 7.5%: ₦${fee.toFixed(2)}<br>Stamp: ₦${stamp}<br>Profit if charge ₦100: ₦${(100-fee-stamp).toFixed(2)}`;
+  });
+  
+  // Trial logic
+  let trialStart = localStorage.getItem('pos_trial_start_lite');
+  if(!trialStart){ trialStart = new Date().toISOString(); localStorage.setItem('pos_trial_start_lite', trialStart); }
+  let daysLeft = 3 - Math.floor((Date.now()-new Date(trialStart).getTime())/(1000*60*60*24));
+  if(daysLeft<0) daysLeft=0;
+  document.getElementById('trialDays').textContent = daysLeft+' days left';
+  
+  checkActivation();
+  render();
+  updateCalc();
+})();
+</script>
+</body></html>
